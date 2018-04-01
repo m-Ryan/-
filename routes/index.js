@@ -20,10 +20,10 @@ router.getArticleUrl = async (req, res, next)=>{
     if(singal) return res.send('未完成，拒绝重复访问');
     singal = true;
     let startTime = getNow();
-    let start_page = 300;
-    let end_page = 429;
+    let start_page = 1;
+    let end_page = 3;
     //getListPage(start_page, end_page, "校园"); 有兴趣的话里面的参数可以配置成客户端传进来，那样就可以动态爬取，用req.query来获取，
-    let listPages = getListPage(start_page, end_page, "人生");
+    let listPages = getListPage(start_page, end_page);
     let listUrlsArr = await asyncControl(listPages, getListUrl, 10, delayTime);
     let listUrls = listUrlsArr.reduce((a,b)=>a.concat(b));
     let listLen = listUrls.length;
