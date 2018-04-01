@@ -14,13 +14,16 @@ let noImgNum = 0; //剔除的没有图片的文章数目
 let damagedArticle = 0; //无效链接文章数目
 let noList = 0; //无效的链接列表数目
 let writerFail = 0; //写入数据库失败的文章数目
+let singal = false;
 
 router.getArticleUrl = async (req, res, next)=>{
+    if(singal) return res.send('未完成，拒绝重复访问');
+    singal = true;
     let startTime = getNow();
-    let start_page = 1;
-    let end_page = 2;
+    let start_page = 300;
+    let end_page = 429;
     //getListPage(start_page, end_page, "校园"); 有兴趣的话里面的参数可以配置成客户端传进来，那样就可以动态爬取，用req.query来获取，
-    let listPages = getListPage(start_page, end_page);
+    let listPages = getListPage(start_page, end_page, "人生");
     let listUrlsArr = await asyncControl(listPages, getListUrl, 10, delayTime);
     let listUrls = listUrlsArr.reduce((a,b)=>a.concat(b));
     let listLen = listUrls.length;
@@ -35,6 +38,7 @@ router.getArticleUrl = async (req, res, next)=>{
     console.log('文章写入数据库失败数：' + '　' + writerFail);
     console.log('共爬取有效文章数：' + '　' + currentUrl);
     console.log('爬虫结束');
+    singal = false;
     res.send('爬虫结束');
 }
 
@@ -302,7 +306,7 @@ const getPageContent = async(article, count)=>{
 
 
     //写入数据库，不需要写入就注释掉下面那一段
-    let sql = `INSERT INTO article(article_title ,article_date ,article_source ,article_writer ,article_img, article_content, article_type, article_url_type, article_summary,article_cutImg) VALUES(${conn.escape(title)},${conn.escape(date)},${conn.escape(source)},${conn.escape(writer)},${conn.escape(downImgSrc)},${conn.escape(contenText)},${conn.escape(type)},${conn.escape(url_type)},${conn.escape(summary)},${conn.escape(cutImgSrc)})`;
+    let sql = `INSERT INTO article(article_title ,article_date ,article_source ,article_writer ,article_img, article_content, article_type, article_url_type, article_summary,article_cutImg) VALUES(${conn.escape(title)},${conn.escape(date)},${conn.escape(source)},${conn.escape(writer)},${conn.escape(`/images/essay/`+downImgSrc)},${conn.escape(contenText)},${conn.escape(type)},${conn.escape(url_type)},${conn.escape(summary)},${conn.escape(`/images/essay/cut`+cutImgSrc)})`;
     try {
         insertRes = await conn.query(sql);
         console.log('写入数据库：' + (++currentUrl));
